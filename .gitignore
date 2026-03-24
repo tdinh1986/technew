@@ -1,0 +1,11 @@
+.serena/
+.claude/
+__pycache__/
+*.pyc
+.venv/
+backend/.env
+frontend/.env.local
+*.db
+.DS_Store
+node_modules/
+.next/
