@@ -20,9 +20,9 @@ def _validate_rss_feed(url: str) -> str | None:
         feed = feedparser.parse(url)
     except Exception as exc:
         return f"Could not fetch feed: {exc}"
-    if feed.get("bozo") and feed.get("bozo_exception"):
+    if getattr(feed, "bozo", False) and getattr(feed, "bozo_exception", None):
         return f"Malformed RSS feed: {feed.bozo_exception}"
-    if not feed.entries:
+    if not getattr(feed, "entries", []):
         return "RSS feed has no entries"
     return None
 
@@ -42,7 +42,7 @@ def create_source(body: SourceCreate, db: Session = Depends(get_db)):
     if body.type == "rss" and not name:
         try:
             feed = feedparser.parse(body.url)
-            name = feed.feed.get("title") or None
+            name = getattr(feed.feed, "title", None) or None
         except Exception:
             pass
 
@@ -63,9 +63,7 @@ def list_sources(db: Session = Depends(get_db)):
 
 
 @router.patch("/sources/{source_id}", response_model=ApiResponse[SourceOut])
-def update_source(
-    source_id: str, body: SourceUpdate, db: Session = Depends(get_db)
-):
+def update_source(source_id: str, body: SourceUpdate, db: Session = Depends(get_db)):
     source = db.query(Source).filter(Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")

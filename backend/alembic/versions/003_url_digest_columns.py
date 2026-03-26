@@ -19,11 +19,21 @@ depends_on = None
 def upgrade() -> None:
     op.add_column(
         "articles",
-        sa.Column("source_job_id", sa.String(36), sa.ForeignKey("fetch_jobs.id"), nullable=True),
+        sa.Column(
+            "source_job_id",
+            sa.String(36),
+            sa.ForeignKey("fetch_jobs.id"),
+            nullable=True,
+        ),
     )
     op.add_column(
         "fetch_jobs",
-        sa.Column("report_id", sa.String(36), sa.ForeignKey("digest_reports.id"), nullable=True),
+        sa.Column(
+            "report_id",
+            sa.String(36),
+            sa.ForeignKey("digest_reports.id"),
+            nullable=True,
+        ),
     )
 
 

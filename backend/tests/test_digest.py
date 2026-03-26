@@ -58,7 +58,9 @@ def test_digest_has_actionable_insight_per_section(db_session: Session) -> None:
 # ── Topic keyword matching tests ──────────────────────────────────────────────
 
 
-def _seed_article_with_title(db: Session, title: str, topic_tag: str, article_id: str) -> Article:
+def _seed_article_with_title(
+    db: Session, title: str, topic_tag: str, article_id: str
+) -> Article:
     a = Article(
         id=article_id,
         url_hash=f"{'0' * 56}{article_id[-8:]}",
@@ -83,7 +85,9 @@ def _seed_article_with_title(db: Session, title: str, topic_tag: str, article_id
 
 def test_keyword_match_overrides_llm_topic(db_session: Session) -> None:
     """Article whose title matches a TopicFilter keyword appears in keyword section."""
-    _seed_article_with_title(db_session, "New AI breakthrough announced", "Technology", "kw-art-1")
+    _seed_article_with_title(
+        db_session, "New AI breakthrough announced", "Technology", "kw-art-1"
+    )
     db_session.add(TopicFilter(keyword="AI", active=True))
     db_session.commit()
 
@@ -98,7 +102,9 @@ def test_keyword_match_overrides_llm_topic(db_session: Session) -> None:
 
 def test_no_keyword_match_falls_back_to_llm_topic(db_session: Session) -> None:
     """Article with no matching keyword retains its LLM-assigned topic."""
-    _seed_article_with_title(db_session, "Python 4.0 released", "Programming", "fb-art-1")
+    _seed_article_with_title(
+        db_session, "Python 4.0 released", "Programming", "fb-art-1"
+    )
     db_session.add(TopicFilter(keyword="Security", active=True))
     db_session.commit()
 
@@ -111,8 +117,12 @@ def test_no_keyword_match_falls_back_to_llm_topic(db_session: Session) -> None:
 
 def test_keyword_sections_appear_before_fallback_sections(db_session: Session) -> None:
     """Keyword-matched sections come before LLM-grouped fallback sections."""
-    _seed_article_with_title(db_session, "Rust memory safety deep dive", "Systems", "ord-art-1")
-    _seed_article_with_title(db_session, "General cloud computing news", "Cloud", "ord-art-2")
+    _seed_article_with_title(
+        db_session, "Rust memory safety deep dive", "Systems", "ord-art-1"
+    )
+    _seed_article_with_title(
+        db_session, "General cloud computing news", "Cloud", "ord-art-2"
+    )
     db_session.add(TopicFilter(keyword="Rust", active=True))
     db_session.commit()
 

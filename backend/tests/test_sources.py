@@ -79,7 +79,8 @@ def test_create_source_bozo_feed_rejected(test_client: TestClient):
 def test_create_source_empty_feed_rejected(test_client: TestClient):
     with patch("api.sources.feedparser.parse", return_value=_empty_feed()):
         resp = test_client.post(
-            "/api/sources", json={"type": "rss", "url": "https://empty-feed.example.com"}
+            "/api/sources",
+            json={"type": "rss", "url": "https://empty-feed.example.com"},
         )
     assert resp.status_code == 422
     assert "no entries" in resp.json()["detail"].lower()
@@ -87,7 +88,8 @@ def test_create_source_empty_feed_rejected(test_client: TestClient):
 
 def test_create_hackernews_source_no_validation(test_client: TestClient):
     resp = test_client.post(
-        "/api/sources", json={"type": "hackernews", "url": "https://news.ycombinator.com"}
+        "/api/sources",
+        json={"type": "hackernews", "url": "https://news.ycombinator.com"},
     )
     assert resp.status_code == 200
     assert resp.json()["data"]["type"] == "hackernews"
