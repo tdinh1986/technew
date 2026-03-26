@@ -32,7 +32,9 @@ class TestParse:
 
     def test_snippet_capped_at_500_chars(self):
         long_text = "A" * 1000
-        html = f"<html><head><title>T</title></head><body><p>{long_text}</p></body></html>"
+        html = (
+            f"<html><head><title>T</title></head><body><p>{long_text}</p></body></html>"
+        )
         result = _parse("https://example.com", html)
         assert result is not None
         assert len(result.snippet) <= 500

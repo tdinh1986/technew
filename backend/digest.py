@@ -77,9 +77,14 @@ def _build_digest(rows: list, db: Session) -> DigestReport | None:
             best_insight = (
                 articles[0]["_insights"][0]
                 if articles[0]["_insights"]
-                else {"type": "Read More", "text": "Explore these articles for more details."}
+                else {
+                    "type": "Read More",
+                    "text": "Explore these articles for more details.",
+                }
             )
-            clean_articles = [{k: v for k, v in a.items() if k != "_insights"} for a in articles]
+            clean_articles = [
+                {k: v for k, v in a.items() if k != "_insights"} for a in articles
+            ]
             sections.append(
                 {
                     "topic": topic,
@@ -90,7 +95,9 @@ def _build_digest(rows: list, db: Session) -> DigestReport | None:
             )
         return sections
 
-    topic_sections = _sections_from(keyword_sections) + _sections_from(fallback_sections)
+    topic_sections = _sections_from(keyword_sections) + _sections_from(
+        fallback_sections
+    )
     total = sum(s["article_count"] for s in topic_sections)
 
     report = DigestReport(

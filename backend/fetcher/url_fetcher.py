@@ -20,7 +20,9 @@ class URLFetcher(AbstractFetcher):
 
     async def fetch(self) -> list[RawArticle]:
         results: list[RawArticle] = []
-        async with httpx.AsyncClient(timeout=10, headers=_HEADERS, follow_redirects=True) as client:
+        async with httpx.AsyncClient(
+            timeout=10, headers=_HEADERS, follow_redirects=True
+        ) as client:
             for url in self._urls:
                 try:
                     resp = await client.get(url)

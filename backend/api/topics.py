@@ -19,11 +19,7 @@ def _topic_to_out(topic: TopicFilter) -> TopicFilterOut:
 
 @router.post("/topics", response_model=ApiResponse[TopicFilterOut])
 def create_topic(body: TopicFilterCreate, db: Session = Depends(get_db)):
-    existing = (
-        db.query(TopicFilter)
-        .filter(TopicFilter.keyword == body.keyword)
-        .first()
-    )
+    existing = db.query(TopicFilter).filter(TopicFilter.keyword == body.keyword).first()
     if existing:
         raise HTTPException(status_code=409, detail="Topic keyword already exists")
     topic = TopicFilter(keyword=body.keyword)

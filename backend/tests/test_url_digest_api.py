@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 
 class TestUrlDigestEndpoint:
     def test_returns_202_with_job_id(self, test_client):
