@@ -2,106 +2,105 @@
 
 A tech news aggregator and summarizer. The Python backend fetches articles from RSS feeds and news APIs, generates AI-powered summaries via Claude, and exposes a REST API. The Next.js frontend displays digest reports and lets you trigger manual fetches.
 
-## Overview
+**How it works:** Fetch articles → deduplicate by URL → summarize with Claude → display bullet-point digest with actionable insights.
 
-TechNew keeps you caught up on tech news without the noise. Instead of reading dozens of articles, you get a curated daily digest — bullet-point summaries per article plus a high-level overview — all generated automatically.
+---
 
-**How it works:**
+## Quick Start
 
-1. **Fetch** — Pulls articles from configured RSS feeds and/or NewsAPI; deduplicates by URL hash
-2. **Summarize** — Calls Claude (`claude-sonnet-4-6`) to produce per-article bullets and a daily digest
-3. **Store** — Persists articles and summaries in SQLite (swappable to PostgreSQL)
-4. **Serve** — FastAPI exposes REST endpoints for reports, articles, and manual fetch triggers
-5. **Display** — Next.js frontend renders the digest report with actionable insights
-
-## Architecture
-
-```
-technew/
-├── backend/          # Python (FastAPI)
-│   ├── main.py       # FastAPI app entrypoint
-│   ├── fetcher.py    # News source fetching (RSS, APIs)
-│   ├── summarizer.py # LLM summarization via Anthropic SDK
-│   ├── scheduler.py  # APScheduler for periodic fetching
-│   ├── models.py     # Pydantic models / DB schemas
-│   └── db.py         # SQLite/Postgres via SQLAlchemy
-└── frontend/         # Next.js (App Router)
-    ├── app/          # Pages and layouts
-    ├── components/   # UI components
-    └── lib/          # API client, types
-```
-
-## Tech Stack
-
-| Layer | Technologies |
-|-------|-------------|
-| Backend | Python 3.12, FastAPI, Uvicorn, APScheduler |
-| AI | Anthropic SDK (`claude-sonnet-4-6`) |
-| Data | SQLAlchemy, Alembic, SQLite / PostgreSQL |
-| Fetching | feedparser, httpx |
-| Frontend | Next.js 14 (App Router), Tailwind CSS, SWR |
-
-## Getting Started
-
-### Backend
+### 1. Backend
 
 ```bash
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and fill in your keys:
+
+```bash
+cp .env.example .env
+```
+
+```env
+ANTHROPIC_API_KEY=sk-ant-...          # required — get from console.anthropic.com
+RSS_FEED_URLS=https://hnrss.org/frontpage,https://feeds.arstechnica.com/arstechnica/index
+                                       # required — comma-separated RSS feed URLs
+DATABASE_URL=sqlite:///./technew.db   # optional (default shown)
+FETCH_INTERVAL_HOURS=6                # optional (default shown)
+NEWS_API_KEY=                         # optional — get from newsapi.org
+```
+
+Run the database migration, then start the server:
+
+```bash
+alembic upgrade head
 uvicorn main:app --reload --port 8000
 ```
 
-Create `backend/.env`:
-
-```
-ANTHROPIC_API_KEY=your_key_here
-NEWS_API_KEY=your_key_here        # optional
-DATABASE_URL=sqlite:///./technew.db
-FETCH_INTERVAL_HOURS=6
-```
-
-### Frontend
+### 2. Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev   # http://localhost:3000
+cp .env.local.example .env.local      # sets NEXT_PUBLIC_API_URL=http://localhost:8000
+npm run dev
 ```
 
-Create `frontend/.env.local`:
+Open [http://localhost:3000](http://localhost:3000).
 
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+---
 
-## API
+## Usage
 
-All routes are prefixed with `/api`. Responses use a consistent envelope:
+1. Open the app — you'll see an empty state if no digest exists yet.
+2. Click **Fetch & Summarize** to pull the latest articles and generate a digest. This runs in the background; the button polls for completion.
+3. The digest appears as topic sections, each with bullet summaries and an actionable insight.
+4. Fetches also run automatically every `FETCH_INTERVAL_HOURS` hours.
 
-```json
-{ "data": ..., "error": null, "meta": {} }
-```
+---
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/reports` | List digest reports |
-| `GET /api/articles` | List fetched articles |
-| `POST /api/fetch` | Trigger a manual fetch (returns job ID immediately) |
+## API Endpoints
 
-## Commands
+All routes are prefixed `/api`. Responses use `{ data, error, meta }` envelope.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/fetch` | Trigger fetch + summarize (returns 202 + job ID) |
+| `GET` | `/api/jobs/{id}` | Poll job status (`queued` → `running` → `done`/`failed`) |
+| `GET` | `/api/reports/latest` | Latest digest report |
+| `GET` | `/api/reports` | Last 30 reports (no topic sections) |
+
+---
+
+## Development
 
 **Backend:**
 ```bash
-pytest                        # run all tests
-pytest tests/test_fetcher.py  # run single test file
-ruff check .                  # lint
-ruff format .                 # format
+cd backend
+source .venv/bin/activate
+pytest                              # all tests
+pytest tests/test_fetcher.py        # single file
+pytest -k "test_rss"                # by keyword
+ruff check . && ruff format .       # lint + format
 ```
 
 **Frontend:**
 ```bash
-npm run dev    # development server
-npm run build  # production build
-npm run lint   # lint
+cd frontend
+npm test       # vitest (component tests)
+npm run lint   # ESLint
+npm run build  # production build check
 ```
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| Backend | Python 3.9+, FastAPI, SQLAlchemy 2, Alembic, APScheduler |
+| AI | Anthropic SDK (`claude-sonnet-4-6`) |
+| Fetching | feedparser, httpx |
+| Frontend | Next.js 14 (App Router), Tailwind CSS, SWR |
+| Database | SQLite (default) / PostgreSQL (swap via `DATABASE_URL`) |
